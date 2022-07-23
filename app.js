@@ -11,9 +11,7 @@ function callApi(url) {
   return JSON.parse(ajax.response);
 }
 
-const data = callApi(LIST_API)
-
-window.addEventListener('hashchange', function() {
+function showContent() {
   const id = location.hash.substring(1);
   
   const content = callApi(CONTENT_API.replace("@id", id));
@@ -24,19 +22,25 @@ window.addEventListener('hashchange', function() {
       <a href="#">목록으로</a>
     </div>
   `;
-})
-
-
-const titles = [];
-titles.push('<ul>');
-for (let i=0; i<10; i++) {
-  titles.push(`
-    <li>
-      <a href="#${data[i].id}">
-        ${data[i].title} (${data[i].comments_count})
-      </a>
-    </li>
-  `);
 }
-titles.push('</ul>')
-app.innerHTML = titles.join('');
+
+function showList() {
+  const data = callApi(LIST_API)
+  const titles = [];
+  titles.push('<ul>');
+  for (let i=0; i<10; i++) {
+    titles.push(`
+      <li>
+        <a href="#${data[i].id}">
+          ${data[i].title} (${data[i].comments_count})
+        </a>
+      </li>
+    `);
+  }
+  titles.push('</ul>')
+  app.innerHTML = titles.join('');
+}
+
+window.addEventListener('hashchange', showContent)
+
+showList();
