@@ -1,3 +1,5 @@
+const { toEditorSettings } = require("typescript");
+
 const ajax = new XMLHttpRequest();
 const LIST_API = 'https://api.hnpwa.com/v0/news/1.json'
 const CONTENT_API = 'https://api.hnpwa.com/v0/item/@id.json'
@@ -32,7 +34,19 @@ function showList() {
   const data = callApi(LIST_API)
   const titles = [];
 
-  titles.push('<ul>');
+  let template = `
+    <div>
+      <h1>Hacker News</h1>
+      <ul>
+        {{__titles__}}
+      </ul>
+      <div>
+        <a href="#/page/{{__previous_page__}}">이전</a>
+        <a href="#/page/{{__next_page__}}">다음</a>
+      </div>
+    </div>
+  `;
+
   for (let i=(store.currentPage - 1) * 10; i< store.currentPage * 10; i++) {
     titles.push(`
       <li>
@@ -42,16 +56,11 @@ function showList() {
       </li>
     `);
   }
-  titles.push('</ul>')
-
-  titles.push(`
-    <div>
-      <a href="#/page/${store.currentPage > 1? store.currentPage - 1: 1 }">이전</a>
-      <span>${store.currentPage}</span>
-      <a href="#/page/${store.currentPage + 1}">다음</a>
-    </div>
-  `)
-  app.innerHTML = titles.join('');
+  
+  template = template.replace('{{__titles__}}', titles.join(''));
+  template = template.replace('{{__previous_page__}}', store.currentPage > 1? store.currentPage - 1: 1 )
+  template = template.replace('{{__next_page__}}', store.currentPage + 1 )
+  app.innerHTML = template;
 }
 
 function router() {
