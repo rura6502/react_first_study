@@ -41,6 +41,18 @@ function showList() {
   app.innerHTML = titles.join('');
 }
 
-window.addEventListener('hashchange', showContent)
 
-showList();
+function router() {
+  const hash = location.hash;
+
+  if (hash === '') {
+    showList();
+  } else {
+    showContent();
+  }
+}
+
+window.addEventListener('hashchange', router)
+router();
+
+
