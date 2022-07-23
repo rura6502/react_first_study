@@ -4,17 +4,19 @@ const CONTENT_API = 'https://api.hnpwa.com/v0/item/@id.json'
 
 const app = document.getElementById("app");
 
-ajax.open('GET', LIST_API, false);
-ajax.send();
+function callApi(url) {
+  ajax.open('GET', url, false);
+  ajax.send();
 
-const data = JSON.parse(ajax.response);
+  return JSON.parse(ajax.response);
+}
+
+const data = callApi(LIST_API)
 
 window.addEventListener('hashchange', function() {
   const id = location.hash.substring(1);
-  ajax.open('GET', CONTENT_API.replace("@id", id), false);
-  ajax.send();
   
-  const content = JSON.parse(ajax.response);
+  const content = callApi(CONTENT_API.replace("@id", id));
 
   app.innerHTML = `
     <h1>${content.title}</h1>
