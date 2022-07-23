@@ -9,7 +9,6 @@ ajax.send();
 
 const data = JSON.parse(ajax.response);
 
-const ul = document.createElement('ul');
 window.addEventListener('hashchange', function() {
   const id = location.hash.substring(1);
   ajax.open('GET', CONTENT_API.replace("@id", id), false);
@@ -17,20 +16,25 @@ window.addEventListener('hashchange', function() {
   
   const content = JSON.parse(ajax.response);
 
-  const title = this.document.createElement('h1');
-  title.innerHTML = `${content.title}`
-  app.appendChild(title)
+  app.innerHTML = `
+    <h1>${content.title}</h1>
+    <div>
+      <a href="#">목록으로</a>
+    </div>
+  `;
 })
 
+
+const titles = [];
+titles.push('<ul>');
 for (let i=0; i<10; i++) {
-  const li = document.createElement("li");
-  const a = document.createElement("a")
-  
-  a.innerHTML =  `${data[i].title} (${data[i].comments_count})`;
-  a.href = `#${data[i].id}`;
-
-  li.appendChild(a);
-  ul.appendChild(li);
+  titles.push(`
+    <li>
+      <a href="#${data[i].id}">
+        ${data[i].title} (${data[i].comments_count})
+      </a>
+    </li>
+  `);
 }
-
-app.appendChild(ul);
+titles.push('</ul>')
+app.innerHTML = titles.join('');
