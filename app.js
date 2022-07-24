@@ -7,7 +7,8 @@ const CONTENT_API = 'https://api.hnpwa.com/v0/item/@id.json'
 const app = document.getElementById("app");
 
 const store = {
-  currentPage: 1
+  currentPage: 1,
+  feeds: [],
 }
 
 function callApi(url) {
@@ -21,6 +22,13 @@ function showContent() {
   const id = location.hash.substring(7);
   
   const content = callApi(CONTENT_API.replace("@id", id));
+
+  for (let i=0; i<store.feeds.length; i++) {
+    if (store.feeds[i].id === Number(id)) {
+      store.feeds[i].read = true;
+    }
+    break;
+  }
 
   let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
@@ -54,9 +62,21 @@ function showContent() {
   app.innerHTML = template;
 }
 
+function makeFeeds(feeds) {
+  for (let i = 0; i<feeds.length; i++) {
+    feeds[i].read = false;
+  }
+  return feeds;
+}
+
 function showList() {
-  const data = callApi(LIST_API)
+  // const data = 
+  let data = store.feeds;
   const titles = [];
+
+  if (data.length === 0) {
+    data = store.feeds = makeFeeds(callApi(LIST_API));
+  }
 
   let template = `
   <div class="bg-gray-600 min-h-screen">
