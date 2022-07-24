@@ -1,12 +1,28 @@
+type Store = {
+  currentPage: number;
+  feeds: NewsFeed[];
+}
+
+type NewsFeed = {
+  id: number;
+  comments_count: number;
+  url: string;
+  user: string;
+  time_ago: string;
+  points: number;
+  title: string;
+  read?: boolean;
+}
+
 const { toEditorSettings } = require("typescript");
 
-const ajax = new XMLHttpRequest();
-const LIST_API = 'https://api.hnpwa.com/v0/news/1.json'
-const CONTENT_API = 'https://api.hnpwa.com/v0/item/@id.json'
+const ajax: XMLHttpRequest = new XMLHttpRequest();
+const LIST_API: string = 'https://api.hnpwa.com/v0/news/1.json'
+const CONTENT_API: string = 'https://api.hnpwa.com/v0/item/@id.json'
 
-const app = document.getElementById("app");
+const app: HTMLElement | null = document.getElementById("app");
 
-const store = {
+const store: Store = {
   currentPage: 1,
   feeds: [],
 }
@@ -59,7 +75,8 @@ function showContent() {
     </div> 
   `;
   template = template.replace('{{__comments__}}', makeComments(content.comments));
-  app.innerHTML = template;
+  
+  updateView(template);
 }
 
 function makeFeeds(feeds) {
@@ -71,7 +88,7 @@ function makeFeeds(feeds) {
 
 function showList() {
   // const data = 
-  let data = store.feeds;
+  let data: NewsFeed[] = store.feeds;
   const titles = [];
 
   if (data.length === 0) {
@@ -128,7 +145,8 @@ function showList() {
   template = template.replace('{{__titles__}}', titles.join(''));
   template = template.replace('{{__previous_page__}}', store.currentPage > 1? store.currentPage - 1: 1 )
   template = template.replace('{{__next_page__}}', store.currentPage + 1 )
-  app.innerHTML = template;
+
+  updateView(template);
 }
 
 function router() {
@@ -169,3 +187,10 @@ window.addEventListener('hashchange', router)
 router();
 
 
+function updateView(html) {
+  if (app) {
+    app.innerHTML = html;
+  } else {
+    console.error('app is not exist...');
+  }
+}
