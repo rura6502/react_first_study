@@ -3,16 +3,30 @@ type Store = {
   feeds: NewsFeed[];
 }
 
-type NewsFeed = {
+type News = {
   id: number;
-  comments_count: number;
+  time_ago: string;
+  title: string;
   url: string;
   user: string;
-  time_ago: string;
+  content: string;
+}
+
+type NewsFeed = News & {
+  comments_count: number;
   points: number;
-  title: string;
   read?: boolean;
 }
+
+type NewsDetails = News & {
+  comments: NewsComment[];
+}
+
+type NewsComment = News & {
+  comments: NewsComment[];
+  level: number;
+}
+
 
 const { toEditorSettings } = require("typescript");
 
@@ -27,17 +41,17 @@ const store: Store = {
   feeds: [],
 }
 
-function callApi(url) {
+function callApi<T>(url: string): T {
   ajax.open('GET', url, false);
   ajax.send();
 
   return JSON.parse(ajax.response);
 }
 
-function showContent() {
+function showContent(): void {
   const id = location.hash.substring(7);
   
-  const content = callApi(CONTENT_API.replace("@id", id));
+  const content = callApi<NewsDetails>(CONTENT_API.replace("@id", id));
 
   for (let i=0; i<store.feeds.length; i++) {
     if (store.feeds[i].id === Number(id)) {
@@ -79,14 +93,14 @@ function showContent() {
   updateView(template);
 }
 
-function makeFeeds(feeds) {
+function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
   for (let i = 0; i<feeds.length; i++) {
     feeds[i].read = false;
   }
   return feeds;
 }
 
-function showList() {
+function showList(): void {
   // const data = 
   let data: NewsFeed[] = store.feeds;
   const titles = [];
@@ -143,13 +157,13 @@ function showList() {
   }
   
   template = template.replace('{{__titles__}}', titles.join(''));
-  template = template.replace('{{__previous_page__}}', store.currentPage > 1? store.currentPage - 1: 1 )
-  template = template.replace('{{__next_page__}}', store.currentPage + 1 )
+  template = template.replace('{{__previous_page__}}', Number(store.currentPage) > 1? store.currentPage - 1: 1 )
+  template = template.replace('{{__next_page__}}', Number(store.currentPage + 1) )
 
   updateView(template);
 }
 
-function router() {
+function router(): void {
   const hash = location.hash;
 
   if (hash === '') {
@@ -162,21 +176,22 @@ function router() {
   }
 }
 
-function makeComments(comments, called = 0) {
+function makeComments(comments: NewsComment[]): string {
   const commentString = [];
   
   for (let i = 0; i < comments.length; i++) {
+    const comment = comments[i];
     commentString.push(`
-      <div style="padding-left: ${called * 40}px;" class="mt-4">
+      <div style="padding-left: ${comment.level * 40}px;" class="mt-4">
         <div class="text-gray-400">
           <i class="fa fa-sort-up mr-2"></i>
-          <strong>${comments[i].user}</strong> ${comments[i].time_ago}
+          <strong>${comment.user}</strong> ${comment.time_ago}
         </div>
-        <p class="text-gray-700">${comments[i].content}</p>
+        <p class="text-gray-700">${comment.content}</p>
       </div>
     `);
-    if (comments[i].comments.length > 0) {
-      commentString.push(makeComments(comments[i].comments, called + 1));
+    if (comment.comments.length > 0) {
+      commentString.push(makeComments(comment.comments));
     }
   }
 
@@ -187,7 +202,7 @@ window.addEventListener('hashchange', router)
 router();
 
 
-function updateView(html) {
+function updateView(html:  string): void {
   if (app) {
     app.innerHTML = html;
   } else {
