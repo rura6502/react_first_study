@@ -1,30 +1,30 @@
-type Store = {
+interface Store {
   currentPage: number;
   feeds: NewsFeed[];
 }
 
-type News = {
-  id: number;
-  time_ago: string;
-  title: string;
-  url: string;
-  user: string;
-  content: string;
+interface News {
+  readonly id: number;
+  readonly time_ago: string;
+  readonly title: string;
+  readonly url: string;
+  readonly user: string;
+  readonly content: string;
 }
 
-type NewsFeed = News & {
-  comments_count: number;
-  points: number;
+interface NewsFeed extends News {
+  readonly comments_count: number;
+  readonly points: number;
   read?: boolean;
 }
 
-type NewsDetails = News & {
-  comments: NewsComment[];
+interface NewsDetails extends News {
+  readonly comments: NewsComment[];
 }
 
-type NewsComment = News & {
-  comments: NewsComment[];
-  level: number;
+interface NewsComment extends News {
+  readonly comments: NewsComment[];
+  readonly level: number;
 }
 
 
@@ -157,8 +157,8 @@ function showList(): void {
   }
   
   template = template.replace('{{__titles__}}', titles.join(''));
-  template = template.replace('{{__previous_page__}}', Number(store.currentPage) > 1? store.currentPage - 1: 1 )
-  template = template.replace('{{__next_page__}}', Number(store.currentPage + 1) )
+  template = template.replace('{{__previous_page__}}', String(store.currentPage > 1? store.currentPage - 1: 1 ))
+  template = template.replace('{{__next_page__}}', String(store.currentPage + 1 ))
 
   updateView(template);
 }
