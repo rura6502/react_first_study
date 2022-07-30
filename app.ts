@@ -41,17 +41,46 @@ const store: Store = {
   feeds: [],
 }
 
-function callApi<T>(url: string): T {
-  ajax.open('GET', url, false);
-  ajax.send();
+class Api {
+  url: string;
+  ajax: XMLHttpRequest;
+  constructor(url: string) {
+      this.url = url;
+      this.ajax = new XMLHttpRequest();
+  }
 
-  return JSON.parse(ajax.response);
+  protected getRequest<T>(): T {
+    ajax.open('GET', this.url, false);
+    ajax.send();
+
+    return JSON.parse(ajax.response);  
+  }
 }
+
+class NewsFeedApi extends Api {
+  getData(): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>();
+  }
+}
+
+class NewsDetailsApi extends Api {
+  getData(): NewsDetails {
+    return this.getRequest<NewsDetails>();
+  }
+}
+
+// function callApi<T>(url: string): T {
+//   ajax.open('GET', url, false);
+//   ajax.send();
+
+//   return JSON.parse(ajax.response);
+// }
 
 function showContent(): void {
   const id = location.hash.substring(7);
-  
-  const content = callApi<NewsDetails>(CONTENT_API.replace("@id", id));
+  const api = new NewsDetailsApi(CONTENT_API.replace("@id", id));
+  const content = api.getData();
+  // const content = callApi<NewsDetails>(CONTENT_API.replace("@id", id));
 
   for (let i=0; i<store.feeds.length; i++) {
     if (store.feeds[i].id === Number(id)) {
@@ -103,10 +132,11 @@ function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
 function showList(): void {
   // const data = 
   let data: NewsFeed[] = store.feeds;
+  const api = new NewsFeedApi(LIST_API);
   const titles = [];
 
   if (data.length === 0) {
-    data = store.feeds = makeFeeds(callApi(LIST_API));
+    data = store.feeds = makeFeeds(api.getData());
   }
 
   let template = `
