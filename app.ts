@@ -41,33 +41,45 @@ const store: Store = {
   feeds: [],
 }
 
-class Api {
-  url: string;
-  ajax: XMLHttpRequest;
-  constructor(url: string) {
-      this.url = url;
-      this.ajax = new XMLHttpRequest();
-  }
+function applyApiMixins(targetClass: any, baseClasses: [any]) {
+  baseClasses.forEach(baseClass => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
+      const descriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
 
-  protected getRequest<T>(): T {
-    ajax.open('GET', this.url, false);
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor);
+      }
+    })
+  });
+}
+
+class Api {
+  getRequest<T>(url: string): T {
+    const ajax = new XMLHttpRequest();
+    ajax.open('GET', url, false);
     ajax.send();
 
     return JSON.parse(ajax.response);  
   }
 }
 
-class NewsFeedApi extends Api {
+class NewsFeedApi {
   getData(): NewsFeed[] {
-    return this.getRequest<NewsFeed[]>();
+    return this.getRequest<NewsFeed[]>(LIST_API);
   }
 }
 
-class NewsDetailsApi extends Api {
-  getData(): NewsDetails {
-    return this.getRequest<NewsDetails>();
+class NewsDetailsApi {
+  getData(id: string): NewsDetails {
+    return this.getRequest<NewsDetails>(CONTENT_API.replace('@id', id));
   }
 }
+
+interface NewsFeedApi extends Api {};
+interface NewsDetailsApi extends Api {};
+
+applyApiMixins(NewsFeedApi, [Api])
+applyApiMixins(NewsDetailsApi, [Api])
 
 // function callApi<T>(url: string): T {
 //   ajax.open('GET', url, false);
@@ -78,8 +90,8 @@ class NewsDetailsApi extends Api {
 
 function showContent(): void {
   const id = location.hash.substring(7);
-  const api = new NewsDetailsApi(CONTENT_API.replace("@id", id));
-  const content = api.getData();
+  const api = new NewsDetailsApi();
+  const content = api.getData(id);
   // const content = callApi<NewsDetails>(CONTENT_API.replace("@id", id));
 
   for (let i=0; i<store.feeds.length; i++) {
@@ -130,9 +142,8 @@ function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
 }
 
 function showList(): void {
-  // const data = 
   let data: NewsFeed[] = store.feeds;
-  const api = new NewsFeedApi(LIST_API);
+  const api = new NewsFeedApi();
   const titles = [];
 
   if (data.length === 0) {
